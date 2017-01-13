@@ -32,7 +32,6 @@ function Card(props) {
   return (<div className="card-spot">
         {props.isBack &&
           <img class="card" src="/media/{props.rank}-{props.suit}.svg"/>
-        }
         }</div>
   );
 }
@@ -42,7 +41,7 @@ function PlayerStack(props) {
         <div className="stack {props.input && active}" onClick={() => props.onClick()}>
           <Card />
         </div>
-        <p className="text-center">Player {props.player}: {props.playerCards} cards remaining</p>
+        <p className="text-center">Player {props.player}<br /> {props.playerCards} cards remaining</p>
       </div>
   );
 }
@@ -64,21 +63,20 @@ class WarCardGame extends React.Component {
   render() {
     return (
         <div className="war-game">
-          <div className="card-row">
+          <div className="card-col">
             <PlayerStack/>
           </div>
-          <div className="card-row">
-            <Card isBack=true />
-            <Card/>
-          </div>
-          <div className="card-row">
+          <div className="card-col">
             <Card/>
             <Card/>
           </div>
-          <div className="card-row">
+          <div className="card-col">
+            <Card/>
+            <Card/>
+          </div>
+          <div className="card-col">
             <PlayerStack/>
           </div>
-          <p className="text-center">Player B: cards remaining</p>
         </div>
     );
   }
