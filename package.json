@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-preset-react": "^6.16.0",
     "react-scripts": "0.8.5"
   },
   "dependencies": {
+    "lodash": "^4.17.4",
     "react": "^15.4.2",
     "react-dom": "^15.4.2"
   },
