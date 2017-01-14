@@ -1,0 +1,50 @@
+body {
+  margin: 0;
+  padding: 1.5rem;
+  font-family: sans-serif;
+}
+
+p {
+  margin: 0.75rem 0;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.war-game-control {
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  max-width: 100%;
+  height: auto;
+}
+
+.card-layout {
+  display: flex;
+}
+
+.card-col {
+  margin-right: 1.5rem;
+}
+
+.card-col:last-of-type {
+  margin-right: 0;
+}
+
+.card-spot {
+  width: 8.247rem;
+  height: 12rem;
+  margin-bottom: 1.5rem;
+  background-color: #ccc;
+  border-radius: 5px;
+}
+
+.card-spot:last-child {
+  margin-bottom: 0;
+}
+
+.stack.active {
+  cursor: pointer;
+}
