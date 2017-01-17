@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
-import CardDeck from './App';
+import {App, CardDeck, PlayingCard} from 'App';
 
 it('renders without crashing', () => {
   const div = document.createElement('div');
@@ -9,6 +8,6 @@ it('renders without crashing', () => {
 });
 it('Deck maintains 52 cards', () => {
   let deck = new CardDeck();
-  expect(deck.getCards(26).length).toBe(26);
-  expect(deck.getCards(26).length).toBe(26);
+  expect(deck.drawCards(26).length).toBe(26);
+  expect(deck.drawCards(26).length).toBe(26);
 });
