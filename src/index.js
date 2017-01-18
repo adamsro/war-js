@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import WarCardGame from './App';
-import './war.css';
+import WarCardGame from './app';
 
 ReactDOM.render(
   <WarCardGame />,
