@@ -1,10 +1,8 @@
-import React, {Component} from 'react';
+import React from 'react';
 
-
-const READY = 1;
-const CARDS_ON_TABLE = 2;
-const IS_WAR = 3;
-const FINISHED = 4;
+const READY = 0;
+const CARDS_ON_TABLE = 1;
+const FINISHED = 2;
 
 const PLAYER_A = "A";
 const PLAYER_B = "B";
@@ -79,7 +77,7 @@ function Stack(props) {
       }
       {props.isWinner === true
         ? <p className="text-center">Player {props.player}<br />WINS!</p>
-        : <p className="text-center">Player {props.player}<br /> {props.stack.length} cards remaining</p>
+        : <p className="text-center">Player {props.player}<br /> {props.stack.length} cards</p>
       }
     </div>
   );
@@ -101,82 +99,132 @@ class WarCardGame extends React.Component {
     };
   }
 
+  /**
+   * Click handler for Player A card
+   */
   handleNextMove() {
     // Manual advance
     clearTimeout(this.timer);
 
     if (this.state.status === FINISHED) {
-      this.constructor();
+      this.init();
     }
-
     else if (this.state.status === READY) {
-      const cardA = this.state.stackA.pop();
-      cardA.faceUp = true;
-      let playedA = [cardA];
-      const cardB = this.state.stackB.pop();
-      cardB.faceUp = true;
-      let playedB = [cardB];
-
-      this.setState({
-        status: CARDS_ON_TABLE,
-        playedA: playedA,
-        playedB: playedB,
-      });
-      this.timer = setTimeout(function () {
-        this.handleNextMove();
-      }.bind(this), 1000);
+      this.stateReady();
     }
-
     else if (this.state.status === CARDS_ON_TABLE) {
+      this.stateCardsOnTable();
+    }
+  }
+
+  /**
+   * Reset function. TODO combine with constructor
+   */
+  init() {
+    // New shuffled deck
+    this.deck = new Deck().shuffle().shuffle().shuffle();
+    this.setState({
+      status: READY,
+      stackA: this.deck.drawCards(26),
+      stackB: this.deck.drawCards(26),
+      playedA: [],
+      playedB: [],
+      winner: false,
+    });
+  }
+
+  /**
+   * State: Both players have cards stacks but no cards in play.
+   */
+  stateReady() {
+    const cardA = this.state.stackA.pop();
+    cardA.faceUp = true;
+
+    const cardB = this.state.stackB.pop();
+    cardB.faceUp = true;
+
+    this.setState({
+      status: CARDS_ON_TABLE,
+      playedA: [cardA],
+      playedB: [cardB],
+    });
+    this.timer = setTimeout(function () {
+      this.handleNextMove();
+    }.bind(this), 1000);
+  }
+
+  /**
+   * State: Players have cards face up on the table and a comparison needs to be made.
+   */
+  stateCardsOnTable() {
       let status = READY;
-      let winner = false;
       let stackA = this.state.stackA.slice();
       let stackB = this.state.stackB.slice();
       let playedA = this.state.playedA.slice();
       let playedB = this.state.playedB.slice();
+      let winner = false;
 
-      // Compare cards last played
-      const result = Deck.compareCards(
-        playedA[playedA.length - 1],
-        playedB[playedB.length - 1]);
+      // Compare cards last played.
+      const result = Deck.compareCards(playedA[playedA.length - 1], playedB[playedB.length - 1]);
 
       if (result === 1) {
-        playedA.map((card) => {
-          card.faceUp = false
-        });
-        playedB.map((card) => {
-          card.faceUp = false
-        });
+
+        // Player A takes the spoils.
+        playedA.forEach((card) => { card.faceUp = false });
+        playedB.forEach((card) => { card.faceUp = false });
         stackA = playedB.concat(playedA, stackA);
-        playedA = [];
-        playedB = [];
+        playedA = playedB = [];
+        // Check for the win
+        if (stackB.length <= 0) {
+          winner = PLAYER_A;
+          status = FINISHED;
+        }
       } else if (result === -1) {
-        playedA.map((card) => {
-          card.faceUp = false
-        });
-        playedB.map((card) => {
-          card.faceUp = false
-        });
+
+        // Player B takes the spoils.
+        playedA.forEach((card) => { card.faceUp = false });
+        playedB.forEach((card) => { card.faceUp = false });
         stackB = playedA.concat(playedB, stackB);
-        playedA = [];
-        playedB = [];
+        playedA = playedB = [];
+        // Check for the win
+        if (stackA.length <= 0) {
+          winner = PLAYER_B;
+          status = FINISHED;
+        }
+
       } else {
+
         // WAR!
-        playedA.push(stackA.pop());
-        const cardA = stackA.pop();
-        cardA.faceUp = true;
-        playedA.push(cardA);
+        if (stackB.length < 2) {
+          // Player B doest have enough cards - Player A wins
+          winner = PLAYER_A;
+          status = FINISHED;
+        } else if (stackA.length < 2) {
+          // Player A doest have enough cards - Player B wins
+          winner = PLAYER_B;
+          status = FINISHED;
+        } else {
+          // One card face down, one card face up.
+          playedA.push(stackA.pop());
+          const cardA = stackA.pop();
+          cardA.faceUp = true;
+          playedA.push(cardA);
 
-        playedB.push(stackB.pop());
-        const cardB = stackB.pop();
-        cardB.faceUp = true;
-        playedB.push(cardB);
+          // One card face down, one card face up.
+          playedB.push(stackB.pop());
+          const cardB = stackB.pop();
+          cardB.faceUp = true;
+          playedB.push(cardB);
 
-        status = CARDS_ON_TABLE;
+          // Repeat this sequence since no winner has been determined yet.
+          status = CARDS_ON_TABLE;
+        }
 
-        this.timer = setTimeout(function () {
-          this.handleNextMove();
-        }.bind(this), 1000);
+        if (status !== FINISHED) {
+          this.timer = setTimeout(function () {
+            this.handleNextMove();
+          }.bind(this), 1000);
+        }
       }
 
       this.setState({
@@ -187,7 +235,6 @@ class WarCardGame extends React.Component {
         playedB: playedB,
         winner: winner,
       });
-    }
   }
 
   render() {
@@ -198,7 +245,7 @@ class WarCardGame extends React.Component {
             clickHandle={() => this.handleNextMove()}
             player={PLAYER_A}
             stack={this.state.stackA}
-            winner={this.state.winner === PLAYER_A} />
+            isWinner={this.state.winner === PLAYER_A} />
         </div>
         <div className="card-col">
           {this.state.playedA.map((card, index) =>
@@ -211,7 +258,10 @@ class WarCardGame extends React.Component {
           )}
         </div>
         <div className="card-col">
-          <Stack player={PLAYER_B} stack={this.state.stackB} winner={this.state.winner === PLAYER_B} />
+          <Stack
+            player={PLAYER_B}
+            stack={this.state.stackB}
+            isWinner={this.state.winner === PLAYER_B} />
         </div>
       </div>
     );
