@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 
 
-const NOT_STARTED = 0;
 const READY = 1;
 const CARDS_ON_TABLE = 2;
 const IS_WAR = 3;
@@ -11,13 +10,22 @@ const PLAYER_A = "A";
 const PLAYER_B = "B";
 
 // The deck is divided evenly among the players, giving each a down stack.
-class PlayingCard {
-  constructor(rank, suit) {
+class Card {
+  constructor(rank, suit, faceUp = false) {
     this.rank = rank;
     this.suit = suit;
+    this.faceUp = faceUp;
   }
 }
-class CardDeck {
+
+function CardView(props) {
+  if (props.faceUp) {
+    return <img className="card" src={"/cards/" + props.rank + props.suit + ".svg"}/>
+  }
+  return <img className="card" src="/cards/back.svg"/>
+}
+
+class Deck {
   constructor() {
     // No jokers
     const RANKS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
@@ -26,7 +34,7 @@ class CardDeck {
 
     RANKS.forEach(function (rank) {
       SUITS.forEach(function (suit) {
-        this.cards.push(new PlayingCard(rank, suit));
+        this.cards.push(new Card(rank, suit));
       }, this);
     }, this);
     return this;
@@ -54,137 +62,149 @@ class CardDeck {
   }
 }
 
-export {PlayingCard, CardDeck};
+export {Card, Deck};
 
-function Card(props) {
-  return (<div className="card-spot">
-      {props.showBack &&
-      <img className="card" src="/cards/back.svg"/>
-      }
-      {props.face &&
-      <img className="card" src={"/cards/" + props.face.rank + props.face.suit + ".svg"}/>
-      }
+
+function StackActive(props) {
+  return (<div className="clickable" tabIndex="1" autoFocus="true" onClick={() => props.clickHandle()}>
+      <Stack {...props} />
     </div>
   );
 }
-
-function PlayerStack(props) {
-  if (props.clickHandle) {
-    return (<div className="stack active" tabIndex="1" autoFocus="true" onClick={() => props.clickHandle()}>
-        <Card showBack={props.playerCardCount !== 0}/>
-        <p className="text-center">Player {props.player}<br /> {props.playerCardCount} cards remaining</p>
-      </div>
-    );
-  } else {
-    return (<div className="stack">
-        <Card showBack={props.playerCardCount !== 0}/>
-        <p className="text-center">Player {props.player}<br /> {props.playerCardCount} cards remaining</p>
-      </div>
-    );
-  }
+function Stack(props) {
+  return (<div className="stack">
+      {props.stack.length > 0
+        ? <CardView {...props.stack[props.stack.length - 1]}/>
+        : <div className="card-spot"></div>
+      }
+      <p className="text-center">Player {props.player}<br /> {props.stack.length} cards remaining</p>
+    </div>
+  );
 }
 
 class WarCardGame extends React.Component {
 
   constructor() {
     super();
-    this.deck = new CardDeck().shuffle();
-    this.state = {
-      status: NOT_STARTED,
-      stackA: [],
-      stackB: [],
-      cardA: false,
-      cardB: false,
-      warCardA: false,
-      warCardB: false,
-    }
-  }
-
-  handleStart() {
     // New shuffled deck
-    this.setState({
+    this.deck = new Deck().shuffle();
+    this.state = {
       status: READY,
       stackA: this.deck.drawCards(26),
       stackB: this.deck.drawCards(26),
-      cardA: false,
-      cardB: false,
-      warCardA: false,
-      warCardB: false,
-    });
+      playedA: [],
+      playedB: [],
+      winner: false,
+    };
   }
 
   handleNextMove() {
     // Manual advance
     clearTimeout(this.timer);
 
-    // Check if the game has been started.
-    if (this.state.status === NOT_STARTED || this.state.status === FINISHED) {
-      return this.handleStart();
+    if (this.state.status === FINISHED) {
+      return this.constructor();
     }
-    else if (this.state.status === READY) {
+
+    if (this.state.status === READY) {
+
       const cardA = this.state.stackA.pop();
+      cardA.faceUp = true;
+      let playedA = [cardA];
       const cardB = this.state.stackB.pop();
+      cardB.faceUp = true;
+      let playedB = [cardB];
+
       this.setState({
         status: CARDS_ON_TABLE,
-        cardA: cardA,
-        cardB: cardB,
+        playedA: playedA,
+        playedB: playedB,
       });
       this.timer = setTimeout(function () {
         this.handleNextMove();
       }.bind(this), 1000);
     }
     else if (this.state.status === CARDS_ON_TABLE) {
-      const result = CardDeck.compareCards(this.state.cardA, this.state.cardB);
-      const stackA = this.state.stackA.slice();
-      const stackB = this.state.stackB.slice();
+
+      let status = READY;
+      let stackA = this.state.stackA.slice();
+      let stackB = this.state.stackB.slice();
+      let playedA = this.state.playedA.slice();
+      let playedB = this.state.playedB.slice();
+
+      // Compare cards last played
+      const result = Deck.compareCards(
+        playedA[playedA.length - 1],
+        playedB[playedB.length - 1]);
+
       if (result === 1) {
-        stackA.push(this.state.cardA);
-        stackA.push(this.state.cardB);
+        playedA.map((card) => {
+          card.faceUp = false
+        });
+        playedB.map((card) => {
+          card.faceUp = false
+        });
+        stackA = playedB.concat(playedA, stackA);
+        playedA = [];
+        playedB = [];
       } else if (result === -1) {
-        stackB.push(this.state.cardA);
-        stackB.push(this.state.cardB);
+        playedA.map((card) => {
+          card.faceUp = false
+        });
+        playedB.map((card) => {
+          card.faceUp = false
+        });
+        stackB = playedA.concat(playedB, stackB);
+        playedA = [];
+        playedB = [];
       } else {
         // WAR!
+        playedA.push(stackA.pop());
+        const cardA = stackA.pop();
+        cardA.faceUp = true;
+        playedA.push(cardA);
+
+        playedB.push(stackB.pop());
+        const cardB = stackB.pop();
+        cardB.faceUp = true;
+        playedB.push(cardB);
+
+        status = CARDS_ON_TABLE;
+
+        this.timer = setTimeout(function () {
+          this.handleNextMove();
+        }.bind(this), 1000);
       }
+
       this.setState({
-        status: READY,
+        status: status,
         stackA: stackA,
         stackB: stackB,
-        cardA: false,
-        cardB: false,
+        playedA: playedA,
+        playedB: playedB,
       });
-    }
-    else if (this.state.status === IS_WAR) {
 
     }
   }
 
   render() {
     return (
-      <div className="war-game">
-        <div className="card-layout">
-          <div className="card-col">
-            <PlayerStack
-              clickHandle={() => this.handleNextMove()}
-              player={PLAYER_A}
-              playerCardCount={this.state.stackA.length}
-            />
-          </div>
-          <div className="card-col">
-            <Card face={this.state.cardA}/>
-            <Card showBack={this.state.warCardA}/>
-          </div>
-          <div className="card-col">
-            <Card face={this.state.cardB}/>
-            <Card showBack={this.state.warCardB}/>
-          </div>
-          <div className="card-col">
-            <PlayerStack
-              clickHandle={false}
-              player={PLAYER_B}
-              playerCardCount={this.state.stackB.length}
-            />
-          </div>
+      <div className="card-layout">
+        <div className="card-col">
+          <StackActive clickHandle={() => this.handleNextMove()} player={PLAYER_A} stack={this.state.stackA}/>
+        </div>
+        <div className="card-col">
+          {this.state.playedA.map((card, index) =>
+            <CardView key={index} {...card} />
+          )}
+        </div>
+        <div className="card-col">
+          {this.state.playedB.map((card, index) =>
+            <CardView key={index} {...card} />
+          )}
+        </div>
+        <div className="card-col">
+          <Stack player={PLAYER_B} stack={this.state.stackB}/>
         </div>
       </div>
     );

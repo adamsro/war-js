@@ -27,6 +27,7 @@ p {
 
 .card-col {
   margin-right: 1.5rem;
+  width: 9rem;
 }
 
 .card-col:last-of-type {
@@ -34,8 +35,8 @@ p {
 }
 
 .card-spot {
-  width: 8.247rem;
-  height: 12rem;
+  width: 9rem;
+  height: 13.07131rem;
   margin-bottom: 1.5rem;
   background-color: #ccc;
   border-radius: 5px;
@@ -45,6 +46,6 @@ p {
   margin-bottom: 0;
 }
 
-.stack.active {
+.clickable {
   cursor: pointer;
 }
