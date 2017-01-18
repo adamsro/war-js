@@ -24,23 +24,44 @@ class CardStack {
   }
 
   drawCardFaceUp() {
-
+    const card = this.cards.pop();
+    if (card === 'undefined') {
+      return false;
+    }
+    card.faceUp = true;
+    return card;
   }
 
   drawCardFaceDown() {
-
+    const card = this.cards.pop();
+    if (card === 'undefined') {
+      return false;
+    }
+    card.faceUp = false;
+    return card;
   }
 
   drawCards(numCards) {
     return this.cards.splice(0, numCards);
   }
 
-  addCard() {
-
+  addCard(card) {
+    this.cards.push(card);
   }
 
-  addToBottom() {
+  /** put all cards face down at bottom of deck. */
+  addToBottom(cards1, cards2) {
+    cards1.forEach((card) => { card.faceUp = false });
+    cards2.forEach((card) => { card.faceUp = false });
+    this.cards = cards1.concat(cards2, this.cards);
+  }
 
+  shuffle() {
+    for (let i = this.cards.length; i; i--) {
+      let j = Math.floor(Math.random() * i);
+      [this.cards[i - 1], this.cards[j]] = [this.cards[j], this.cards[i - 1]];
+    }
+    return this;
   }
 }
 
@@ -57,24 +78,6 @@ class CardDeck extends CardStack {
       }, this);
     }, this);
     return this;
-  }
-
-  shuffle() {
-    for (let i = this.cards.length; i; i--) {
-      let j = Math.floor(Math.random() * i);
-      [this.cards[i - 1], this.cards[j]] = [this.cards[j], this.cards[i - 1]];
-    }
-    return this;
-  }
-
-
-  static compareCards(card1, card2) {
-    if (card1.rank > card2.rank) {
-      return 1;
-    } else if (card1.rank === card2.rank) {
-      return 0;
-    }
-    return -1;
   }
 }
 
@@ -98,25 +101,29 @@ export default class WarCardGame {
       this.playedB.addCard(this.stackB.drawCardFaceUp());
     } else if (this.state === CARDS_ON_TABLE) {
       // Compare cards last played.
-      const result = CardDeck.compareCards(playedA[playedA.length - 1], playedB[playedB.length - 1]);
+      const result = this.compareCards(this.playedA[playedA.length - 1], this.playedB[playedB.length - 1]);
       if (result === 1) {
         // Player A takes the spoils.
-        this.stackA.addToBottom(this.playedA, this.playedB);
-        this.playedA.setEmpty();
-        this.playedB.setEmpty();
-        this.status = READY;
-        this.checkForWin();
+        this.stackA.addToBottom(
+          this.playedA.drawCards(this.playedA.length -1),
+          this.playedB.drawCards(this.playedB.length -1)
+        );
+        if (!this.isAWinner()) {
+          this.status = READY;
+        }
 
       } else if (result === -1) {
         // Player A takes the spoils.
-        this.stackB.addToBottom(this.playedA, this.playedB);
-        this.playedA.setEmpty();
-        this.playedB.setEmpty();
-        this.status = READY;
-        this.checkForWin();
+        this.stackB.addToBottom(
+          this.playedA.drawCards(this.playedA.length -1),
+          this.playedB.drawCards(this.playedB.length -1)
+        );
+        if (!this.isAWinner()) {
+          this.status = READY;
+        }
 
-      } else if (this.checkForWnBeforWar()) {
-        // WAR!
+      } else if (!this.isWinnerWar()) {
+          // WAR!
           this.playedA.addCard(this.stackA.drawCardFaceDown());
           this.playedB.addCard(this.stackB.drawCardFaceDown());
 
@@ -128,7 +135,7 @@ export default class WarCardGame {
     }
   }
 
-  checkForWin() {
+  private isAWinner() {
     if (this.stackA === 0) {
       this.winner = PLAYER_B;
       this.state = FINISHED;
@@ -142,7 +149,7 @@ export default class WarCardGame {
     return false;
   }
 
-  checkForWnBeforWar() {
+  private isWinnerWar() {
     if (this.stackA < 2) {
       // Player B doest have enough cards - Player A wins
       this.winner = PLAYER_B;
@@ -156,6 +163,14 @@ export default class WarCardGame {
       return true;
     }
     return false;
+  }
+  static compareCards(card1, card2) {
+    if (card1.rank > card2.rank) {
+      return 1;
+    } else if (card1.rank === card2.rank) {
+      return 0;
+    }
+    return -1;
   }
 }
 
