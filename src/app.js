@@ -29,13 +29,14 @@ function Stack(props) {
   );
 }
 
-class WarCardGame extends React.Component {
+export default class App extends React.Component {
 
   constructor() {
     super();
     this.state = {
       game: new WarCardGame()
     };
+    this.state.game.startGame();
   }
 
   /**
@@ -43,7 +44,7 @@ class WarCardGame extends React.Component {
    */
   handleNextMove() {
     // Manual advance
-    this.state.game
+    // this.state.game.nextMove();
   }
 
   render() {
@@ -53,27 +54,26 @@ class WarCardGame extends React.Component {
           <StackActive
             clickHandle={() => this.handleNextMove()}
             player="A"
-            stack={this.state.stackA}
-            isWinner={this.state.winner === PLAYER_A} />
+            stack={this.state.game.stackA}
+            isWinner={this.state.game.winner} />
         </div>
         <div className="card-col">
-          {this.state.playedA.map((card, index) =>
+          {this.state.game.playedA.map((card, index) =>
             <CardView key={index} {...card} />
           )}
         </div>
         <div className="card-col">
-          {this.state.playedB.map((card, index) =>
+          {this.state.game.playedB.map((card, index) =>
             <CardView key={index} {...card} />
           )}
         </div>
         <div className="card-col">
           <Stack
             player="B"
-            stack={this.state.stackB}
-            isWinner={this.state.winner === PLAYER_B} />
+            stack={this.state.game.stackB}
+            isWinner={this.state.winner} />
         </div>
       </div>
     );
   }
 }
-

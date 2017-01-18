@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import WarCardGame from './app';
+import App from './app';
 
 ReactDOM.render(
-  <WarCardGame />,
+  <App />,
   document.getElementById('root')
 );

@@ -101,7 +101,7 @@ export default class WarCardGame {
       this.playedB.addCard(this.stackB.drawCardFaceUp());
     } else if (this.state === CARDS_ON_TABLE) {
       // Compare cards last played.
-      const result = this.compareCards(this.playedA[playedA.length - 1], this.playedB[playedB.length - 1]);
+      const result = this.compareCards(this.playedA[this.playedA.length - 1], this.playedB[this.playedB.length - 1]);
       if (result === 1) {
         // Player A takes the spoils.
         this.stackA.addToBottom(
@@ -135,7 +135,7 @@ export default class WarCardGame {
     }
   }
 
-  private isAWinner() {
+  isAWinner() {
     if (this.stackA === 0) {
       this.winner = PLAYER_B;
       this.state = FINISHED;
@@ -149,7 +149,7 @@ export default class WarCardGame {
     return false;
   }
 
-  private isWinnerWar() {
+  isWinnerWar() {
     if (this.stackA < 2) {
       // Player B doest have enough cards - Player A wins
       this.winner = PLAYER_B;
