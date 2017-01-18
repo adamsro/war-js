@@ -77,7 +77,10 @@ function Stack(props) {
         ? <CardView {...props.stack[props.stack.length - 1]}/>
         : <div className="card-spot"></div>
       }
-      <p className="text-center">Player {props.player}<br /> {props.stack.length} cards remaining</p>
+      {props.isWinner === true
+        ? <p className="text-center">Player {props.player}<br />WINS!</p>
+        : <p className="text-center">Player {props.player}<br /> {props.stack.length} cards remaining</p>
+      }
     </div>
   );
 }
@@ -103,11 +106,10 @@ class WarCardGame extends React.Component {
     clearTimeout(this.timer);
 
     if (this.state.status === FINISHED) {
-      return this.constructor();
+      this.constructor();
     }
 
-    if (this.state.status === READY) {
-
+    else if (this.state.status === READY) {
       const cardA = this.state.stackA.pop();
       cardA.faceUp = true;
       let playedA = [cardA];
@@ -124,9 +126,10 @@ class WarCardGame extends React.Component {
         this.handleNextMove();
       }.bind(this), 1000);
     }
-    else if (this.state.status === CARDS_ON_TABLE) {
 
+    else if (this.state.status === CARDS_ON_TABLE) {
       let status = READY;
+      let winner = false;
       let stackA = this.state.stackA.slice();
       let stackB = this.state.stackB.slice();
       let playedA = this.state.playedA.slice();
@@ -182,8 +185,8 @@ class WarCardGame extends React.Component {
         stackB: stackB,
         playedA: playedA,
         playedB: playedB,
+        winner: winner,
       });
-
     }
   }
 
@@ -191,7 +194,11 @@ class WarCardGame extends React.Component {
     return (
       <div className="card-layout">
         <div className="card-col">
-          <StackActive clickHandle={() => this.handleNextMove()} player={PLAYER_A} stack={this.state.stackA}/>
+          <StackActive
+            clickHandle={() => this.handleNextMove()}
+            player={PLAYER_A}
+            stack={this.state.stackA}
+            winner={this.state.winner === PLAYER_A} />
         </div>
         <div className="card-col">
           {this.state.playedA.map((card, index) =>
@@ -204,7 +211,7 @@ class WarCardGame extends React.Component {
           )}
         </div>
         <div className="card-col">
-          <Stack player={PLAYER_B} stack={this.state.stackB}/>
+          <Stack player={PLAYER_B} stack={this.state.stackB} winner={this.state.winner === PLAYER_B} />
         </div>
       </div>
     );
