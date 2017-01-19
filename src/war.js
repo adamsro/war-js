@@ -3,7 +3,7 @@
  */
 
 // The deck is divided evenly among the players, giving each a down stack.
-class PlayingCard {
+export class PlayingCard {
   constructor(rank, suit, faceUp = false) {
     this.rank = rank;
     this.suit = suit;
@@ -11,7 +11,7 @@ class PlayingCard {
   }
 }
 
-class CardStack {
+export class CardStack {
   constructor(startingCards = []) {
     if (startingCards.length > 0) {
       this.cards = startingCards;
@@ -20,21 +20,20 @@ class CardStack {
     }
   }
 
+  drawCard() {
+    const card = this.cards.pop();
+    if (card === 'undefined') {
+      return false;
+    }
+    return card;
+  }
+
   drawCardFaceUp() {
     const card = this.cards.pop();
     if (card === 'undefined') {
       return false;
     }
     card.faceUp = true;
-    return card;
-  }
-
-  drawCardFaceDown() {
-    const card = this.cards.pop();
-    if (card === 'undefined') {
-      return false;
-    }
-    card.faceUp = false;
     return card;
   }
 
@@ -48,8 +47,12 @@ class CardStack {
 
   /** put all cards face down at bottom of deck. */
   addToBottom(cards1, cards2) {
-    cards1.forEach((card) => { card.faceUp = false });
-    cards2.forEach((card) => { card.faceUp = false });
+    cards1.forEach((card) => {
+      card.faceUp = false
+    });
+    cards2.forEach((card) => {
+      card.faceUp = false
+    });
     this.cards = cards1.concat(cards2, this.cards);
   }
 
@@ -60,15 +63,17 @@ class CardStack {
     }
     return this;
   }
+
   hasCards() {
     return this.cards.length !== 0;
   }
+
   peek() {
-    return this.cards[this.cards.length -1];
+    return this.cards[this.cards.length - 1];
   }
 }
 
-class CardDeck extends CardStack {
+export class CardDeck extends CardStack {
   constructor() {
     super();
     // No jokers
@@ -84,7 +89,7 @@ class CardDeck extends CardStack {
   }
 }
 
-export default class WarGame {
+export class WarGame {
   constructor() {
     this.state = WarGame.NOT_STARTED;
     this.onChanges = [];
@@ -98,14 +103,23 @@ export default class WarGame {
     this.onChanges.forEach(function (cb) { cb(); });
   }
 
-  startGame() {
-    const deck = new CardDeck().shuffle().shuffle();
+  startGame(stack) {
     this.state = WarGame.READY;
-    this.stackA = new CardStack(deck.drawCards(26));
-    this.stackB = new CardStack(deck.drawCards(26));
+    this.stackA = new CardStack();
+    this.stackB = new CardStack();
     this.playedA = new CardStack();
     this.playedB = new CardStack();
     this.winner = false;
+
+    stack.shuffle().shuffle();
+    let stackLength = stack.cards.length;
+    for (let i = 0; i < stackLength; i++) {
+      if (i % 2 === 0) {
+        this.stackA.addCard(stack.drawCard());
+      } else {
+        this.stackB.addCard(stack.drawCard());
+      }
+    }
     this.inform();
   }
 
@@ -119,6 +133,7 @@ export default class WarGame {
     }
     this.inform();
   }
+
   stateReady() {
     this.playedA.addCard(this.stackA.drawCardFaceUp());
     this.playedB.addCard(this.stackB.drawCardFaceUp());
@@ -159,8 +174,8 @@ export default class WarGame {
 
     } else if (!this.isWinnerWar()) {
       // WAR!
-      this.playedA.addCard(this.stackA.drawCardFaceDown());
-      this.playedB.addCard(this.stackB.drawCardFaceDown());
+      this.playedA.addCard(this.stackA.drawCard());
+      this.playedB.addCard(this.stackB.drawCard());
 
       this.playedA.addCard(this.stackA.drawCardFaceUp());
       this.playedB.addCard(this.stackB.drawCardFaceUp());
@@ -184,6 +199,7 @@ export default class WarGame {
     }
     return false;
   }
+
   static compareCards(card1, card2) {
     if (card1.rank > card2.rank) {
       return 1;

@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './app.css';
-import WarGame from './war';
+import {WarGame, CardDeck} from './war';
 
 function CardView(props) {
   if (props.faceUp) {
@@ -64,8 +64,9 @@ export default class WarApp extends React.Component {
   }
 }
 
-const game =  new WarGame();
-game.startGame();
+const game = new WarGame();
+const deck = new CardDeck();
+game.startGame(deck);
 
 function render() {
   ReactDOM.render(
