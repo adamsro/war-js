@@ -7,16 +7,16 @@ import './app.css';
 
 function CardView(props) {
   if (props.faceUp) {
-    return <img className="card" src={"/cards/" + props.rank + props.suit + ".svg"} alt="card X"/>
+    return <img className="card" src={"cards/" + props.rank + props.suit + ".svg"} alt="card X"/>
   }
-  return <img className="card" src="/cards/back.svg" alt="Back of Card"/>
+  return <img className="card" src="cards/back.svg" alt="Back of Card"/>
 }
 
 function Stack(props) {
   return (<div className="stack">
       {props.stack.hasCards()
         ? <CardView {...props.stack.peek()}/>
-        : <img className="card" src="/cards/empty.svg" alt="Card used to be here"/>
+        : <img className="card" src="cards/empty.svg" alt="Card used to be here"/>
       }
       {props.game.winner === props.player
         ? <p className="text-center">Player {props.player}<br /> {props.stack.cards.length} cards<br />WINS!</p>
