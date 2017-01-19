@@ -12,8 +12,12 @@ class PlayingCard {
 }
 
 class CardStack {
-  constructor() {
-    this.cards = [];
+  constructor(startingCards = []) {
+    if (startingCards.length > 0) {
+      this.cards = startingCards;
+    } else {
+      this.cards = [];
+    }
   }
 
   drawCardFaceUp() {
@@ -77,6 +81,16 @@ class CardDeck extends CardStack {
 export default class WarGame {
   constructor() {
     this.state = WarGame.NOT_STARTED;
+    this.winner = false;
+    this.onChanges = [];
+  }
+
+  subscribe(onChange) {
+    this.onChanges.push(onChange);
+  }
+
+  inform() {
+    this.onChanges.forEach(function (cb) { cb(); });
   }
 
   startGame() {
@@ -86,6 +100,7 @@ export default class WarGame {
     this.stackB = new CardStack(deck.drawCards(26));
     this.playedA = new CardStack();
     this.playedB = new CardStack();
+    this.inform();
   }
 
   nextMove() {
@@ -126,6 +141,7 @@ export default class WarGame {
           this.status = WarGame.CARDS_ON_TABLE;
       }
     }
+    this.inform();
   }
 
   isAWinner() {
