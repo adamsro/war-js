@@ -9,7 +9,7 @@ game.startGame(deck);
 
 function render() {
   ReactDOM.render(
-    <WarApp game={game} />,
+    <WarApp game={game}/>,
     document.getElementById('root')
   );
 }

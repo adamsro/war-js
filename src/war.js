@@ -2,7 +2,6 @@
  * Created by adamsro on 1/17/17.
  */
 
-// The deck is divided evenly among the players, giving each a down stack.
 export class PlayingCard {
   constructor(rank, suit, faceUp = false) {
     this.rank = rank;
@@ -45,7 +44,7 @@ export class CardStack {
     this.cards.push(card);
   }
 
-  /** put all cards face down at bottom of deck. */
+  /** Put all cards face down at bottom of deck. */
   addToBottom(cards1, cards2) {
     cards1.forEach((card) => {
       card.faceUp = false
@@ -74,6 +73,7 @@ export class CardStack {
 }
 
 export class CardDeck extends CardStack {
+  /** A new deck will always have 52 cards in it. */
   constructor() {
     super();
     // No jokers
@@ -95,12 +95,20 @@ export class WarGame {
     this.onChanges = [];
   }
 
+  /**
+   * Interface to add new change subscriber
+   */
   subscribe(onChange) {
     this.onChanges.push(onChange);
   }
 
+  /**
+   * Calls render() when the state changes.
+   */
   inform() {
-    this.onChanges.forEach(function (cb) { cb(); });
+    this.onChanges.forEach(function (cb) {
+      cb();
+    });
   }
 
   startGame(stack) {
@@ -123,6 +131,9 @@ export class WarGame {
     this.inform();
   }
 
+  /**
+   * Public interface - advance the game
+   */
   nextMove() {
     if (this.state === WarGame.READY) {
       this.stateReady();
@@ -134,12 +145,18 @@ export class WarGame {
     this.inform();
   }
 
+  /**
+   * Both players have cards and no cards are in play.
+   */
   stateReady() {
     this.playedA.addCard(this.stackA.drawCardFaceUp());
     this.playedB.addCard(this.stackB.drawCardFaceUp());
     this.state = WarGame.CARDS_ON_TABLE;
   }
 
+  /**
+   * Cards are in play on the table and a comparison needs to be made.
+   */
   stateCardsOnTable() {
     // Compare cards last played.
     const result = WarGame.compareCards(this.playedA.peek(), this.playedB.peek());
@@ -184,6 +201,9 @@ export class WarGame {
     }
   }
 
+  /**
+   * If either player doesn't have enough cards to play war, they lose.
+   */
   isWinnerWar() {
     if (!this.stackA.hasCards()) {
       // Player B doest have enough cards - Player A wins
@@ -200,6 +220,9 @@ export class WarGame {
     return false;
   }
 
+  /**
+   * @return int 1 - greater than, 0 - equal, -1 less than
+   */
   static compareCards(card1, card2) {
     if (card1.rank > card2.rank) {
       return 1;
