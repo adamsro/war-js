@@ -12,13 +12,13 @@ function CardView(props) {
 
 function Stack(props) {
   return (<div className="stack">
-      {props.stack.length > 0
-        ? <CardView {...props.stack[props.stack.length - 1]}/>
-        : <div className="card-spot"></div>
+      {props.stack.hasCards()
+        ? <CardView {...props.stack.peek()}/>
+        : <img className="card" src="/cards/empty.svg" alt="Card used to be here" />
       }
-      {props.isWinner === true
-        ? <p className="text-center">Player {props.player}<br />WINS!</p>
-        : <p className="text-center">Player {props.player}<br /> {props.stack.length} cards</p>
+      {props.game.winner === props.player
+        ? <p className="text-center">Player {props.player}<br /> {props.stack.cards.length} cards<br />WINS!</p>
+        : <p className="text-center">Player {props.player}<br /> {props.stack.cards.length} cards</p>
       }
     </div>
   );
@@ -44,11 +44,7 @@ export default class WarApp extends React.Component {
     return (
       <div className="card-layout">
         <div className="card-col">
-          <StackActive
-            player={WarGame.PLAYER_A}
-            stack={this.props.game.stackA}
-            game={this.props.game}
-            isWinner={this.props.game.winner === WarGame.PLAYER_A} />
+          <StackActive player={WarGame.PLAYER_A} game={this.props.game} stack={this.props.game.stackA} />
         </div>
         <div className="card-col">
           {this.props.game.playedA.cards.map((card, index) =>
@@ -61,10 +57,7 @@ export default class WarApp extends React.Component {
           )}
         </div>
         <div className="card-col">
-          <Stack
-            player={WarGame.PLAYER_B}
-            stack={this.props.game.stackB}
-            isWinner={this.props.winner === WarGame.PLAYER_B} />
+          <Stack player={WarGame.PLAYER_B} game={this.props.game} stack={this.props.game.stackB} />
         </div>
       </div>
     );

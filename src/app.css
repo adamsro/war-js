@@ -34,18 +34,6 @@ p {
   margin-right: 0;
 }
 
-.card-spot {
-  width: 9rem;
-  height: 13.07131rem;
-  margin-bottom: 1.5rem;
-  background-color: #ccc;
-  border-radius: 5px;
-}
-
-.card-spot:last-child {
-  margin-bottom: 0;
-}
-
 .clickable {
   cursor: pointer;
 }

@@ -60,6 +60,12 @@ class CardStack {
     }
     return this;
   }
+  hasCards() {
+    return this.cards.length !== 0;
+  }
+  peek() {
+    return this.cards[this.cards.length -1];
+  }
 }
 
 class CardDeck extends CardStack {
@@ -81,7 +87,6 @@ class CardDeck extends CardStack {
 export default class WarGame {
   constructor() {
     this.state = WarGame.NOT_STARTED;
-    this.winner = false;
     this.onChanges = [];
   }
 
@@ -100,72 +105,78 @@ export default class WarGame {
     this.stackB = new CardStack(deck.drawCards(26));
     this.playedA = new CardStack();
     this.playedB = new CardStack();
+    this.winner = false;
     this.inform();
   }
 
   nextMove() {
     if (this.state === WarGame.READY) {
-      this.playedA.addCard(this.stackA.drawCardFaceUp());
-      this.playedB.addCard(this.stackB.drawCardFaceUp());
+      this.stateReady();
     } else if (this.state === WarGame.CARDS_ON_TABLE) {
-      // Compare cards last played.
-      const result = this.compareCards(this.playedA[this.playedA.length - 1], this.playedB[this.playedB.length - 1]);
-      if (result === 1) {
-        // Player A takes the spoils.
-        this.stackA.addToBottom(
-          this.playedA.drawCards(this.playedA.length -1),
-          this.playedB.drawCards(this.playedB.length -1)
-        );
-        if (!this.isAWinner()) {
-          this.status = WarGame.READY;
-        }
-
-      } else if (result === -1) {
-        // Player A takes the spoils.
-        this.stackB.addToBottom(
-          this.playedA.drawCards(this.playedA.length -1),
-          this.playedB.drawCards(this.playedB.length -1)
-        );
-        if (!this.isAWinner()) {
-          this.status = WarGame.READY;
-        }
-
-      } else if (!this.isWinnerWar()) {
-          // WAR!
-          this.playedA.addCard(this.stackA.drawCardFaceDown());
-          this.playedB.addCard(this.stackB.drawCardFaceDown());
-
-          this.playedA.addCard(this.stackA.drawCardFaceUp());
-          this.playedB.addCard(this.stackB.drawCardFaceUp());
-
-          this.status = WarGame.CARDS_ON_TABLE;
-      }
+      this.stateCardsOnTable();
+    } else if (this.state === WarGame.FINISHED) {
+      this.startGame();
     }
     this.inform();
   }
+  stateReady() {
+    this.playedA.addCard(this.stackA.drawCardFaceUp());
+    this.playedB.addCard(this.stackB.drawCardFaceUp());
+    this.state = WarGame.CARDS_ON_TABLE;
+  }
 
-  isAWinner() {
-    if (this.stackA === 0) {
-      this.winner = WarGame.PLAYER_B;
-      this.state = WarGame.FINISHED;
-      return true;
+  stateCardsOnTable() {
+    // Compare cards last played.
+    const result = WarGame.compareCards(this.playedA.peek(), this.playedB.peek());
+    if (result === 1) {
+      // Player A takes the spoils.
+      this.stackA.addToBottom(
+        this.playedA.drawCards(this.playedA.cards.length),
+        this.playedB.drawCards(this.playedB.cards.length)
+      );
+
+      if (!this.stackB.hasCards()) {
+        // Player A takes the game.
+        this.winner = WarGame.PLAYER_A;
+        this.state = WarGame.FINISHED;
+      } else {
+        this.state = WarGame.READY;
+      }
+
+    } else if (result === -1) {
+      // Player A takes the spoils.
+      this.stackB.addToBottom(
+        this.playedA.drawCards(this.playedA.cards.length),
+        this.playedB.drawCards(this.playedB.cards.length)
+      );
+      if (!this.stackA.hasCards()) {
+        // Player B takes the game.
+        this.winner = WarGame.PLAYER_B;
+        this.state = WarGame.FINISHED;
+      } else {
+        this.state = WarGame.READY;
+      }
+
+    } else if (!this.isWinnerWar()) {
+      // WAR!
+      this.playedA.addCard(this.stackA.drawCardFaceDown());
+      this.playedB.addCard(this.stackB.drawCardFaceDown());
+
+      this.playedA.addCard(this.stackA.drawCardFaceUp());
+      this.playedB.addCard(this.stackB.drawCardFaceUp());
+
+      this.state = WarGame.CARDS_ON_TABLE;
     }
-    if (this.stackB === 0) {
-      this.winner = WarGame.PLAYER_A;
-      this.state = WarGame.FINISHED;
-      return true;
-    }
-    return false;
   }
 
   isWinnerWar() {
-    if (this.stackA < 2) {
+    if (!this.stackA.hasCards()) {
       // Player B doest have enough cards - Player A wins
       this.winner = WarGame.PLAYER_B;
       this.state = WarGame.FINISHED;
       return true;
     }
-    if (this.stackB < 2) {
+    if (!this.stackB.hasCards()) {
       // Player B doest have enough cards - Player A wins
       this.winner = WarGame.PLAYER_A;
       this.state = WarGame.FINISHED;
